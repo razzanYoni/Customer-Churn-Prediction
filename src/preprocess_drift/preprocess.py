@@ -10,7 +10,7 @@ parser.add_argument("--output_path", type=str, required=True, help="Path to save
 parser.add_argument("--drift_intensity", type=float, default=0.2, help="Drift intensity (default: 0.2)")
 args = parser.parse_args()
 
-path = "./data/original-data.csv"
+path = "../../data/raw/original-data.csv"
 spark = SparkSession.builder.appName("SimpleApp").getOrCreate()
 
 
