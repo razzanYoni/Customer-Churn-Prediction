@@ -24,7 +24,7 @@ df = df.withColumn(
     df.TotalCharges.cast("double")
 )
 
-# Drop rows where more than 4 columns are NA
+# Drop rows where there is NA 
 df = df.dropna()
 
 # Function to Simulate Data Drift
@@ -55,6 +55,5 @@ drifted_df = simulate_data_drift(df, drift_intensity=0.2)
 
 # Save Drifted Dataset
 drifted_df.write.mode('overwrite').parquet(output_path)
-# drifted_df.write.csv(output_path)  
 
 spark.stop()

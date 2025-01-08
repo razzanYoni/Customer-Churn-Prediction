@@ -37,9 +37,9 @@ imputer = Imputer(
 df_imputed = imputer.fit(df).transform(df)
 
 
-# Drop rows where more than 4 columns are NA
+# Drop rows where there is NA
 df = df.dropna()
 
-df.write.csv()
+df.write.mode('overwrite').parquet(args.output_path)
 
 spark.stop()
