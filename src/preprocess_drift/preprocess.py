@@ -17,10 +17,10 @@ spark = SparkSession.builder.appName("SimpleApp").getOrCreate()
 df = spark.read.csv(path, header=True, inferSchema=True)
 
 # Drop customerID Column because it is not predictive
-df.drop('customerID')
+df = df.drop('customerID')
 
 # Drop Rows with Missing Churn Values
-df.na.drop(subset=["Churn"])
+df = df.na.drop(subset=["Churn"])
 
 # Replace empty strings in 'TotalCharges' with 0
 df = df.withColumn(
@@ -40,6 +40,6 @@ df_imputed = imputer.fit(df).transform(df)
 # Drop rows where there is NA
 df = df.dropna()
 
-df.write.mode('overwrite').parquet(args.output_path)
+df.write.mode('overwrite').option("header", True).parquet(args.output_path)
 
 spark.stop()
