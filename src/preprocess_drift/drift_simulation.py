@@ -54,6 +54,6 @@ def simulate_data_drift(df, drift_intensity=0.2):
 drifted_df = simulate_data_drift(df, drift_intensity=0.2)
 
 # Save Drifted Dataset
-drifted_df.write.mode('overwrite').parquet(output_path)
+drifted_df.write.mode('overwrite').option('header', True).parquet(output_path)
 
 spark.stop()
