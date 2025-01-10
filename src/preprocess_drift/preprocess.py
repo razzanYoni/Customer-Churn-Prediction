@@ -99,7 +99,7 @@ df.printSchema()
 
 query = df.writeStream \
     .outputMode("append") \
-    .format("csv") \
+    .format("parquet") \
     .option("checkpointLocation", checkpoint_path) \
     .option("path", output_path) \
     .option("header", True) \
