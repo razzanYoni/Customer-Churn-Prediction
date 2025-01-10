@@ -18,14 +18,14 @@ spark = SparkSession.builder.appName("SimpleApp").getOrCreate()
 
 df = spark.read.csv(path, header=True, inferSchema=True)
 
-# Replace empty strings in 'TotalCharges' with 0
-df = df.withColumn(
-    "TotalCharges",
-    df.TotalCharges.cast("double")
-)
+# # Replace empty strings in 'TotalCharges' with 0
+# df = df.withColumn(
+#     "TotalCharges",
+#     df.TotalCharges.cast("double")
+# )
 
-# Drop rows where there is NA 
-df = df.dropna()
+# # Drop rows where there is NA 
+# df = df.dropna()
 
 # Function to Simulate Data Drift
 def simulate_data_drift(df, drift_intensity=0.2):

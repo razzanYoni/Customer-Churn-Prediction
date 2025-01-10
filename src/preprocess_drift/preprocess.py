@@ -1,8 +1,9 @@
 """SimpleApp.py"""
 import argparse
 from pyspark.sql import SparkSession
-from pyspark.ml.feature import Imputer
+from pyspark.ml.feature import Imputer, OneHotEncoder
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, DoubleType
+from pyspark.sql.functions import col, trim, when
 
 # Argument Parser
 parser = argparse.ArgumentParser(description="Data Preprocessing and Drift Simulation")
@@ -37,10 +38,9 @@ dataSchema = StructType([
     StructField("PaperlessBilling", StringType(), True),
     StructField("PaymentMethod", StringType(), True),
     StructField("MonthlyCharges", DoubleType(), True),
-    StructField("TotalCharges", DoubleType(), True),
+    StructField("TotalCharges", StringType(), True),
     StructField("Churn", StringType(), True),
 ])
-
 
 df = spark \
     .readStream \
@@ -51,39 +51,58 @@ df = spark \
 # Drop customerID Column because it is not predictive
 df = df.drop('customerID')
 
-# Drop Rows with Missing Churn Values
-df = df.na.drop(subset=["Churn"])
+df = df.dropna()
 
-# Replace empty strings in 'TotalCharges' with 0
+df = df.filter(trim(col("TotalCharges")) != "")
+
 df = df.withColumn(
     "TotalCharges",
-    df.TotalCharges.cast("float")
+    df.TotalCharges.cast("Double")
 )
 
-df = df.withColumn(
-    "MonthlyCharges",
-    df.TotalCharges.cast("float")
-)
+categories = {
+    "gender": ["Male", "Female"],
+    "Partner": ["Yes", "No"],
+    "Dependents": ["Yes", "No"],
+    "PhoneService": ["Yes", "No"],
+    "MultipleLines": ["Yes", "No", "No phone service"],
+    "InternetService": ["DSL", "Fiber optic", "No"],
+    "OnlineSecurity": ["Yes", "No", "No internet service"],
+    "OnlineBackup": ["Yes", "No", "No internet service"],
+    "DeviceProtection": ["Yes", "No", "No internet service"],
+    "TechSupport": ["Yes", "No", "No internet service"],
+    "StreamingTV": ["Yes", "No", "No internet service"],
+    "StreamingMovies": ["Yes", "No", "No internet service"],
+    "Contract": ["Month-to-month", "One year", "Two year"],
+    "PaperlessBilling": ["Yes", "No"],
+    "PaymentMethod": [
+        "Bank transfer (automatic)", "Credit card (automatic)", 
+        "Electronic check", "Mailed check"
+    ],
+}
+
+# Apply one-hot encoding and filter valid rows
+for column, valid_values in categories.items():
+    # Create one-hot encoded columns for each valid category
+    for value in valid_values:
+        new_column = f"{column}_{value.replace(' ', '_').lower()}"
+        df = df.withColumn(new_column, when(col(column) == value, 1).otherwise(0))
+    
+    # TOO MEMORY CONSUMING, MY JAVA HEAP SPACE IS NOT ENOUGH (FAKHRI)
+    # Filter rows to include only valid values for the column
+    # valid_condition = " OR ".join([f"{column} = '{value}'" if isinstance(value, str) else f"{column} = {value}" for value in valid_values])
+    # df = df.filter(valid_condition)
+
+    df = df.drop(column)
 
 df.printSchema()
 
-# # Handle Missing Values using Imputer
-# imputer = Imputer(
-#     inputCols=["SeniorCitizen", "tenure", "MonthlyCharges", "TotalCharges"],
-#     outputCols=["SeniorCitizen", "tenure", "MonthlyCharges", "TotalCharges"]
-# ).setStrategy("mean")
-
-# df_imputed = imputer.fit(df).transform(df)
-
-
-# Drop rows where there is NA
-df = df.dropna()
-
 query = df.writeStream \
     .outputMode("append") \
-    .format("parquet") \
+    .format("csv") \
     .option("checkpointLocation", checkpoint_path) \
     .option("path", output_path) \
+    .option("header", True) \
     .start()
 
 query.awaitTermination()
