@@ -1,1 +1,1 @@
-python3 drift_simulation.py --input_path ../../data/raw/original-data.csv --output_path ../../data/out/drifted_data --drift_intensity 0.4
+python3 drift_simulation.py --input_path ../../data/raw/original-data.csv --output_path ../../data/out/drifted_data --drift_intensity 20
