@@ -25,13 +25,6 @@ with DAG(
         python_callable=hdfs_upload
     )
 
-    # dummy = SparkSubmitOperator(
-    #     task_id='dummy',
-    #     application='/opt/airflow/src/preprocess_drift/dummy.py',
-    #     conn_id='spark_default',
-    #     conf={'spark.master': 'spark://spark:7077'},
-    # )
-
     preprocess_data = SparkSubmitOperator(
         task_id='preprocess_data',
         application='/opt/airflow/src/preprocess_drift/preprocess.py',
