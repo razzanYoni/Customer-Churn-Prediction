@@ -10,11 +10,13 @@ parser = argparse.ArgumentParser(description="Data Preprocessing and Drift Simul
 parser.add_argument("--input_path", type=str, required=True, help="Path to the input dataset")
 parser.add_argument("--output_path", type=str, required=True, help="Path to save the drifted dataset")
 parser.add_argument("--checkpoint_path", type=str, required=True, help="Path to save the checkpoint")
+parser.add_argument("--file_type", type=str, required=True, help="File type, csv or parquet")
 args = parser.parse_args()
 
 input_path = args.input_path
 output_path = args.output_path
 checkpoint_path = args.checkpoint_path
+file_type = args.file_type
 
 spark = SparkSession.builder.appName("preprocess").getOrCreate()
 
@@ -46,7 +48,8 @@ df = spark \
     .readStream \
     .schema(dataSchema) \
     .option("header", True) \
-    .parquet(input_path) \
+    .format(file_type) \
+    .load(input_path)
 
 # Drop customerID Column because it is not predictive
 df = df.drop('customerID')
