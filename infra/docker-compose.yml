@@ -41,6 +41,7 @@ services:
     environment:
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
       - AIRFLOW__WEBSERVER__SECRET_KEY=your-secret-key-here
+      - AIRFLOW__CORE__ENABLE_XCOM_PICKLING=True
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,6 +63,7 @@ services:
     environment:
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
       - AIRFLOW__WEBSERVER__SECRET_KEY=your-secret-key-here
+      - AIRFLOW__CORE__ENABLE_XCOM_PICKLING=True
 
   # Hadoop services
   namenode:

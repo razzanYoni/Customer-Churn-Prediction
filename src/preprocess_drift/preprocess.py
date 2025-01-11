@@ -118,7 +118,7 @@ vector_assembler = VectorAssembler(inputCols=feature_col, outputCol="features")
 
 df = vector_assembler.transform(df)
 
-df = df.select("features", "label")
+df = df.select("features", "label", "MonthlyCharges")
 
 df.printSchema()
 

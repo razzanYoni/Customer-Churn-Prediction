@@ -1,5 +1,5 @@
 import argparse
-from ml import train_model_neural_network, calculate_initial_model_psi
+from ml import monitor_drift_and_retrain
 from pyspark.sql import SparkSession
 import mlflow
 import pickle
@@ -10,24 +10,18 @@ def main():
     parser.add_argument("--bins_file", type=str, required=True, help="File path to the bins")
     args = parser.parse_args()
 
+    with open(args.bins_file, "rb") as f:
+        bins = pickle.load(f)
+
     mlflow.set_tracking_uri("http://mlflow_server:5000")
 
     spark: SparkSession = SparkSession.builder    \
-    .appName("Train Initial Model") \
+    .appName("Check and Retrain Model") \
     .getOrCreate()
-    
+
     mlflow.pyspark.ml.autolog()
 
-    df = spark.read.parquet(args.input_path, header=True, inferSchema=True)
-
-    data_train, data_test = df.randomSplit([0.8, 0.2], seed=488)
-
-    train_model_neural_network(data_train, data_test, latest_model=None, isRetrain=False)
-
-    bins = calculate_initial_model_psi("MonthlyCharges", df)
-
-    with open(args.bins_file, "wb") as f:
-        pickle.dump(bins, f)
+    monitor_drift_and_retrain(bins, args.input_path, args.latest_model_path)
 
     spark.stop()
 
