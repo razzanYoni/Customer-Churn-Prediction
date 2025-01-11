@@ -1,6 +1,6 @@
 services:
   spark:
-    image: docker.io/bitnami/spark:3.5
+    image: docker.io/bitnami/spark:3.5.3
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -14,7 +14,8 @@ services:
     networks:
       - churn_task
   spark-worker:
-    image: docker.io/bitnami/spark:3.5
+    image: docker.io/bitnami/spark:3.5.3
+    command: bash -c "pip install numpy && /opt/bitnami/scripts/spark/run.sh"
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077

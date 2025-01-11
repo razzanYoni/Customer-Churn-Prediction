@@ -1,4 +1,4 @@
-FROM apache/airflow:2.7.2-python3.10
+FROM apache/airflow:latest-python3.12
 
 ADD requirements.txt .
 USER root
@@ -7,15 +7,10 @@ RUN apt-get update \
     gcc \
     heimdal-dev \
     procps \
-    openjdk-11-jdk \
     ant \
     && apt-get autoremove -yqq --purge \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# Set JAVA_HOME
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-arm64
-RUN export JAVA_HOME
 
 # Add Hadoop configurations
 ENV HADOOP_HOME=/opt/hadoop
@@ -28,6 +23,5 @@ COPY hadoop-conf/hdfs-site.xml $HADOOP_CONF_DIR/
 
 USER airflow
 RUN pip install -r requirements.txt
-RUN pip install mlflow
 
 CMD ["webserver"]

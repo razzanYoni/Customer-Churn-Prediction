@@ -3,7 +3,6 @@ import mlflow.sklearn
 import numpy as np
     
 mlflow.set_tracking_uri("http://mlflow_server:5000")
-mlflow.autolog()
 
 # https://arize.com/blog-course/population-stability-index-psi/
 # https://github.com/mwburke/population-stability-index
@@ -32,33 +31,28 @@ def train_model_neural_network(input_data_path, latest_model=None, isRetrain=Fal
     from pyspark.ml.classification import MultilayerPerceptronClassifier
     from pyspark.ml.evaluation import MulticlassClassificationEvaluator
     from pyspark.sql import SparkSession
-    from pyspark.ml.feature import VectorAssembler
     
     # Create SparkSession
     spark = SparkSession.builder.appName("ChurnPrediction").getOrCreate()
-    
-    # Read data
-    df = spark.read.parquet(input_data_path, header=True, inferSchema=True)
-    feature_cols = df.columns
-    feature_cols.remove('Churn')
 
-    assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
-    df = assembler.transform(df)
+    mlflow.pyspark.ml.autolog()
     
+    df = spark.read.parquet(input_data_path, header=True, inferSchema=True)
+
     train, test = df.randomSplit([0.8, 0.2], seed=488)
     
     with mlflow.start_run(run_name="Initial_Model_Training"):
         # Define the neural network architecture
-        layers = [len(feature_cols), 64, 64, 2]  # Input layer, two hidden layers, output layer
+        layers = [45, 64, 64, 2]  # Input layer, two hidden layers, output layer
         
         # Create and train the model
         mlp = MultilayerPerceptronClassifier(
-            maxIter=10,
+            maxIter=400,
             layers=layers,
             blockSize=32,
             seed=488,
             featuresCol="features",
-            labelCol="Churn"
+            labelCol="label"
         )
         
         if isRetrain and latest_model is not None:
