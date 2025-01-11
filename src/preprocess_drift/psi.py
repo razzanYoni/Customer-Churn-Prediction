@@ -1,9 +1,8 @@
-"""SimpleApp.py"""
 import argparse
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.ml.feature import StringIndexer, VectorAssembler, Bucketizer
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, DoubleType, ArrayType
-from pyspark.sql.functions import col, trim, when, log, count
+from pyspark.ml.feature import Bucketizer
+from pyspark.sql.types import StructType, StructField, DoubleType, ArrayType
+from pyspark.sql.functions import col
 import numpy as np
 
 def is_retrain(psi_values) -> bool:
@@ -93,13 +92,19 @@ def get_numerical_distribution(df: DataFrame):
 # Argument Parser
 parser = argparse.ArgumentParser(description="Data Preprocessing and Drift Simulation")
 parser.add_argument("--input_path", type=str, required=True, help="Path to the input dataset")
-parser.add_argument("--is_retrain_flag_path", type=str, required=True, help="Path to save retrain flag")
+parser.add_argument("--is_retrain_flag_file", type=str, required=True, help="File to save retrain flag")
+parser.add_argument("--distribution_path", type=str, required=True, help="Path to save distribution")
 parser.add_argument("--file_type", type=str, required=True, help="File type, csv or parquet")
 args = parser.parse_args()
 
 input_path = args.input_path
-is_retrain_flag_path = args.is_retrain_flag_path
+is_retrain_flag_file = args.is_retrain_flag_file
+distribution_path = args.distribution_path
 file_type = args.file_type
+
+def write_is_retrain(is_retrain: bool):
+    with open(is_retrain_flag_file, "w") as f:
+        f.write(str(is_retrain))
 
 spark: SparkSession = SparkSession.builder.appName("preprocess").getOrCreate()
 
@@ -191,20 +196,15 @@ try:
     old_distribution = spark.read \
         .format("json") \
         .option("header", True) \
-        .load("../../data/out/old_distribution")
+        .load(distribution_path)
 except:
     new_distribution.write \
         .mode("overwrite") \
         .format("json") \
         .option("header", True) \
-        .save("../../data/out/old_distribution")
+        .save(distribution_path)
     
-    single_bool_df = spark.createDataFrame([(True,)], ["is_retrain"])
-    single_bool_df.write \
-        .mode("overwrite") \
-        .format("json") \
-        .option("header", True) \
-        .save(is_retrain_flag_path)
+    write_is_retrain(True)
     
     spark.stop()
     exit(0)
@@ -215,25 +215,15 @@ psi = get_psi(new_distribution, old_distribution)
 print(psi)
 
 if is_retrain(psi):
-    single_bool_df = spark.createDataFrame([(True,)], ["is_retrain"])
-    single_bool_df.write \
-        .mode("overwrite") \
-        .format("json") \
-        .option("header", True) \
-        .save(is_retrain_flag_path)
+    write_is_retrain(True)
     
     new_distribution.write \
         .mode("overwrite") \
         .format("json") \
         .option("header", True) \
-        .save("../../data/out/old_distribution")
+        .save(distribution_path)
 
 else:
-    single_bool_df = spark.createDataFrame([(False,)], ["is_retrain"])
-    single_bool_df.write \
-        .mode("overwrite") \
-        .format("json") \
-        .option("header", True) \
-        .save(is_retrain_flag_path)
+    write_is_retrain(False)
 
 spark.stop()

@@ -102,11 +102,15 @@ services:
     environment:
       - TZ=UTC
       - GIT_PYTHON_REFRESH=quiet
+      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+      - MLFLOW_ARTIFACT_URI=file:///mlflow/artifacts
     ports:
       - "5001:5000"
     networks:
       - churn_task
     command: mlflow ui --host 0.0.0.0
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
 
   # Spark services
   spark:
@@ -159,6 +163,7 @@ services:
 volumes:
   hadoop_namenode:
   hadoop_datanode:
+  mlflow_artifacts:
 
 networks:
   churn_task:

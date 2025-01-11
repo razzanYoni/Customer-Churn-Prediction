@@ -1,8 +1,6 @@
 """SimpleApp.py"""
 import argparse
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.ml.feature import StringIndexer, VectorAssembler
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, DoubleType, ArrayType
 from pyspark.sql.functions import col, trim, when, log
 import numpy as np
 

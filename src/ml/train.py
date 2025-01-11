@@ -1,35 +1,39 @@
 import argparse
-from ml import train_model_neural_network, calculate_initial_model_psi
-from pyspark.sql import SparkSession
+
+import mlflow.artifacts
+from ml import train_initial_model, retrain_model
 import mlflow
-import pickle
+
+mlflow.set_tracking_uri("http://mlflow_server:5000")
+
+def get_latest_model():
+    client = mlflow.tracking.MlflowClient()
+    model_name = "CustomerChurnModel"
+    try:
+        latest_version_info = client.get_latest_versions(model_name, stages=["None"])
+        if latest_version_info:
+            latest_model_version = latest_version_info[0].version
+            print(f"Latest model version: {latest_model_version}")
+            model_uri = client.get_model_version_download_uri(model_name, latest_model_version)
+            return model_uri
+        else:
+            print("No versions found for the model.")
+            return None
+    except:
+        print("No versions found for the model.")
+        return None
 
 def main():
     parser = argparse.ArgumentParser(description="Run Model Training")
     parser.add_argument("--input_path", type=str, required=True, help="Path to the input dataset")
-    parser.add_argument("--bins_file", type=str, required=True, help="File path to the bins")
     args = parser.parse_args()
 
-    mlflow.set_tracking_uri("http://mlflow_server:5000")
+    latest_model_uri = get_latest_model()
 
-    spark: SparkSession = SparkSession.builder    \
-    .appName("Train Initial Model") \
-    .getOrCreate()
-    
-    mlflow.pyspark.ml.autolog()
-
-    df = spark.read.parquet(args.input_path, header=True, inferSchema=True)
-
-    data_train, data_test = df.randomSplit([0.8, 0.2], seed=488)
-
-    train_model_neural_network(data_train, data_test, latest_model=None, isRetrain=False)
-
-    bins = calculate_initial_model_psi("MonthlyCharges", df)
-
-    with open(args.bins_file, "wb") as f:
-        pickle.dump(bins, f)
-
-    spark.stop()
+    if latest_model_uri is not None:
+        retrain_model(args.input_path, latest_model_uri)
+    else:
+        train_initial_model(args.input_path)
 
 if __name__ == "__main__":
     main()

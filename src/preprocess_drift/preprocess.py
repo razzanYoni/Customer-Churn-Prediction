@@ -2,21 +2,18 @@
 import argparse
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.ml.feature import StringIndexer, VectorAssembler
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, DoubleType, ArrayType
-from pyspark.sql.functions import col, trim, when, log
+from pyspark.sql.functions import col, when
 import numpy as np
 
 # Argument Parser
 parser = argparse.ArgumentParser(description="Data Preprocessing and Drift Simulation")
 parser.add_argument("--input_path", type=str, required=True, help="Path to the input dataset")
 parser.add_argument("--output_path", type=str, required=True, help="Path to save the drifted dataset")
-parser.add_argument("--checkpoint_path", type=str, required=True, help="Path to save the checkpoint")
 parser.add_argument("--file_type", type=str, required=True, help="File type, csv or parquet")
 args = parser.parse_args()
 
 input_path = args.input_path
 output_path = args.output_path
-checkpoint_path = args.checkpoint_path
 file_type = args.file_type
 
 spark: SparkSession = SparkSession.builder.appName("preprocess").getOrCreate()

@@ -1,37 +1,30 @@
 import mlflow
 from pyspark.ml.classification import MultilayerPerceptronClassifier
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-from pyspark.sql import functions as F
-from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 
 
 # https://arize.com/blog-course/population-stability-index-psi/
 # https://github.com/mwburke/population-stability-index
 
-def train_model_neural_network(data_train, data_test, latest_model = None, isRetrain=False):
-    with mlflow.start_run(run_name="Initial_Model_Training" if not isRetrain else "Retrain_Model"):
+def train_model_neural_network(data_train, data_test, isRetrain=False):
+    with mlflow.start_run(run_name="Initial_Model_Training" if not not isRetrain else "Retrain_Model"):
         # get weights from the latest model
         mlp = MultilayerPerceptronClassifier(
-            layers = [45, 10, 45, 20, 2],
+            layers = [data_train.schema["features"].metadata["ml_attr"]["num_attrs"], 10, 45, 20, 2],
             seed = 123,
-            maxIter = 500,
+            maxIter = 10,
             labelCol = "label",
             featuresCol="features",
-            rawPredictionCol="rawPrediction",
-            predictionCol="prediction"
         )
-        if latest_model is not None:
-            mlp.setInitialWeights(latest_model.weights)
 
-        mlp_model = mlp.fit(data_test)
+        mlp_model = mlp.fit(data_train)
 
         # Log model parameters
         mlflow.log_param("model_type", "NeuralNetwork")
 
         # Log model metrics
-        pred_df = mlp_model.transform(data_train)
-        pred_df.select('features','label', 'prediction', 'rawPrediction', 'probability').show(5)
+        pred_df = mlp_model.transform(data_test)
 
         evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="accuracy")
         mlpacc = evaluator.evaluate(pred_df)
@@ -43,6 +36,7 @@ def train_model_neural_network(data_train, data_test, latest_model = None, isRet
 
 def train_initial_model(input_data_path):
     spark = SparkSession.builder.appName("Train Model").getOrCreate()
+    mlflow.pyspark.ml.autolog()
     df = spark.read.parquet(input_data_path, header=True, inferSchema=True)
 
     # Split into features and target
@@ -54,19 +48,18 @@ def train_initial_model(input_data_path):
 
 # https://stackoverflow.com/questions/70111193/how-can-i-load-the-latest-model-version-from-mlflow-model-registry
 # https://medium.com/swlh/pysparks-multi-layer-perceptron-classifier-on-iris-dataset-dcf70d553cd8 
-def monitor_drift_and_retrain(input_data_path, latest_model_path):
-    spark = SparkSession.builder.appName("Train Model").getOrCreate()
+def retrain_model(input_data_path):
+    spark = SparkSession.builder.appName("Retrain Model").getOrCreate()
+    mlflow.pyspark.ml.autolog()
     df = spark.read.parquet(input_data_path, header=True, inferSchema=True)
 
     # Split into features and target
     train_df, test_df = df.randomSplit(weights=[0.8, 0.2], seed=123)
 
-    latest_model = MultilayerPerceptronClassifier.load(latest_model_path)
     # Retrain the model
     train_model_neural_network(
-        data_train=train_df,
+        data_train=train_df,    
         data_test=test_df,
-        latest_model=latest_model,
         isRetrain=True
     )
     print("Model retrained successfully.")
