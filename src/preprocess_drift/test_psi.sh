@@ -1,0 +1,1 @@
+python psi.py --input_path ../../data/out/cleaned --is_retrain_flag_path ../../data/out/flag_retrain --file_type parquet

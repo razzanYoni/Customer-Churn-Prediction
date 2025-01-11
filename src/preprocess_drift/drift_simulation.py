@@ -27,7 +27,7 @@ def simulate_data_drift(df: DataFrame, drift_intensity=0.2):
         col("MonthlyCharges") * (1 + lit(drift_intensity) * rand())
     ).withColumn(
         "TotalCharges",
-        col("TotalCharges") * (1 - lit(drift_intensity) * rand())
+        col("TotalCharges") * (1 + lit(drift_intensity) * rand())
     ).withColumn(
         "tenure",
         (col("tenure") + (lit(drift_intensity * 10) * rand()).cast("int"))
