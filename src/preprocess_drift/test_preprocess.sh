@@ -27,4 +27,4 @@ echo "Folder recreated: $OUTPUT_PATH"
 
 
 
-python3 preprocess.py --input_path ../../data/out/drifted_data --output_path ../../data/out/preprocess --checkpoint_path ../../data/out/checkpoint
+python3 preprocess.py --input_path ../../data/out/drifted_data --output_path ../../data/out/preprocess --checkpoint_path ../../data/out/checkpoint --file_type csv

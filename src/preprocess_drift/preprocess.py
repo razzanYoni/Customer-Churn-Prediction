@@ -1,7 +1,7 @@
 """SimpleApp.py"""
 import argparse
 from pyspark.sql import SparkSession
-from pyspark.ml.feature import Imputer, OneHotEncoder
+from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, DoubleType
 from pyspark.sql.functions import col, trim, when
 
@@ -18,7 +18,7 @@ output_path = args.output_path
 checkpoint_path = args.checkpoint_path
 file_type = args.file_type
 
-spark = SparkSession.builder.appName("preprocess").getOrCreate()
+spark: SparkSession = SparkSession.builder.appName("preprocess").getOrCreate()
 
 dataSchema = StructType([
     StructField("customerID", StringType(), True),
@@ -44,12 +44,19 @@ dataSchema = StructType([
     StructField("Churn", StringType(), True),
 ])
 
-df = spark \
-    .readStream \
-    .schema(dataSchema) \
-    .option("header", True) \
+df = spark.read \
     .format(file_type) \
+    .option("header", True) \
+    .option("inferSchema", True) \
     .load(input_path)
+
+stringIndexer = StringIndexer(inputCol="Churn", outputCol="label", handleInvalid="skip")
+
+df.printSchema()
+
+df = stringIndexer.fit(df).transform(df)
+
+df = df.drop('Churn')
 
 # Drop customerID Column because it is not predictive
 df = df.drop('customerID')
@@ -98,18 +105,41 @@ for column, valid_values in categories.items():
 
     df = df.drop(column)
 
+df = df.drop("gender_drifted")
+df = df.drop("Contract_drifted")
+df = df.drop("MonthlyCharges_drifted")
+df = df.drop("TotalCharges_drifted")
+
+
+feature_col = df.columns
+feature_col.remove("label")
+
+vector_assembler = VectorAssembler(inputCols=feature_col, outputCol="features")
+
+df = vector_assembler.transform(df)
+
+df = df.select("features", "label")
+
 df.printSchema()
 
-query = df.writeStream \
-    .outputMode("append") \
-    .format("parquet") \
-    .option("checkpointLocation", checkpoint_path) \
-    .option("path", output_path) \
-    .option("header", True) \
-    .trigger(availableNow=True) \
-    .start()
+# query = df.writeStream \
+#     .outputMode("append") \
+#     .format("parquet") \
+#     .option("checkpointLocation", checkpoint_path) \
+#     .option("path", output_path) \
+#     .option("header", True) \
+#     .start()
+#     # .trigger(availableNow=True) \
 
-query.awaitTermination()
+df.write \
+  .mode("overwrite") \
+  .format("parquet") \
+  .option("header", True) \
+  .save(output_path)
+
+spark.stop()
+
+# query.awaitTermination()
 
 # df.write.mode('overwrite').option("header", True).parquet(args.output_path)
 
