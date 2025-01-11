@@ -30,10 +30,6 @@ with DAG(
         application='/opt/airflow/src/preprocess_drift/preprocess.py',
         packages='org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0',
         conn_id='spark_default',
-        conf={
-            'spark.master': 'spark://spark:7077',
-            'spark.hadoop.fs.defaultFS': 'hdfs://namenode:9000'
-        },
         application_args=['--input_path', f"hdfs://{HDFS_HOST}:{HDFS_PORT}/data/raw", '--output_path', f"hdfs://{HDFS_HOST}:{HDFS_PORT}/data/output", '--checkpoint_path', f"hdfs://{HDFS_HOST}:{HDFS_PORT}/data/checkpoint", '--file_type', 'csv']
     )
 
@@ -42,10 +38,6 @@ with DAG(
         application='/opt/airflow/src/ml/train.py',
         packages='org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0',
         conn_id='spark_default',
-        conf={
-            'spark.master': 'spark://spark:7077',
-            'spark.hadoop.fs.defaultFS': 'hdfs://namenode:9000'
-        },
         application_args=['--input_path', f"hdfs://{HDFS_HOST}:{HDFS_PORT}/data/output"]
     )
 
