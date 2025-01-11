@@ -38,27 +38,6 @@ def calculate_psi_multiple_features(baseline, current, columns, bins=10):
         psi_values[col] = psi
     return psi_values
 
-def train_model_logistic_regression(X_train, y_train, X_test, y_test):
-    """Train the initial logistic regression model and log it to MLflow."""
-    with mlflow.start_run(run_name="Initial_Model_Training"):
-        model = LogisticRegression(random_state=42, max_iter=1000)
-        model.fit(X_train, y_train)
-
-        # Log model parameters
-        mlflow.log_param("model_type", "LogisticRegression")
-        mlflow.log_param("max_iter", 1000)
-
-        # Log model metrics
-        accuracy = accuracy_score(y_test, model.predict(X_test))
-        roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
-        mlflow.log_metric("accuracy", accuracy)
-        mlflow.log_metric("roc_auc", roc_auc)
-
-        # Log the model
-        mlflow.sklearn.log_model(model, "model")
-
-        print(f"Model trained with accuracy: {accuracy}, ROC AUC: {roc_auc}")
-
 def train_model_neural_network(X_train, y_train, X_test, y_test, latest_model = None, isRetrain=False):
     """Train the initial neural network model and log it to MLflow."""
     with mlflow.start_run(run_name="Initial_Model_Training"):
