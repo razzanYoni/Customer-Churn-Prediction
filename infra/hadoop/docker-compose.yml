@@ -13,7 +13,7 @@ services:
     env_file:
       - ./config
     networks:
-      - etl_task
+      - churn_task
 
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
@@ -26,12 +26,12 @@ services:
     env_file:
       - ./config
     networks:
-      - etl_task
+      - churn_task
 
 volumes:
   hadoop_namenode:
   hadoop_datanode:
 
 networks:
-  etl_task:
-    name: custom_network
+  churn_task:
+    name: churn_network

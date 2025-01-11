@@ -106,6 +106,7 @@ query = df.writeStream \
     .option("checkpointLocation", checkpoint_path) \
     .option("path", output_path) \
     .option("header", True) \
+    .trigger(availableNow=True) \
     .start()
 
 query.awaitTermination()

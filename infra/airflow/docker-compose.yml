@@ -1,20 +1,64 @@
 services:
-  airflow-standalone:
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    networks:
+      - churn_task
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+
+  airflow-webserver:
     build: .
     entrypoint: /bin/bash
     command:
       - -c
-      - airflow db init &&
+      - |
+        airflow db init &&
         airflow users create --role Admin --username admin --password admin --email admin@airflow.com --firstname admin --lastname admin &&
-        airflow standalone
+        airflow webserver
     ports:
       - 8090:8080
     volumes:
       - ./../../data:/opt/airflow/data
       - ./../../dags:/opt/airflow/dags
+      - ./../../src:/opt/airflow/src
     networks:
-      - etl_task
+      - churn_task
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__WEBSERVER__SECRET_KEY=your-secret-key-here
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  airflow-scheduler:
+    build: .
+    command: airflow scheduler
+    volumes:
+      - ./../../data:/opt/airflow/data
+      - ./../../dags:/opt/airflow/dags
+      - ./../../src:/opt/airflow/src
+    networks:
+      - churn_task
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-webserver:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__WEBSERVER__SECRET_KEY=your-secret-key-here
 
 networks:
-  etl_task:
-    name: custom_network
+  churn_task:
+    name: churn_network

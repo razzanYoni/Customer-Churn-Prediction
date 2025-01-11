@@ -6,7 +6,7 @@ services:
     ports:
       - 2181:2181
     networks:
-      - etl_task
+      - churn_task
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: kafka
@@ -20,8 +20,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_BROKER_ID: 2
     networks:
-      - etl_task
+      - churn_task
 
 networks:
-  etl_task:
-    name: custom_network
+  churn_task:
+    name: churn_network
