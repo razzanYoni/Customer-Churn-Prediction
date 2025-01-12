@@ -31,7 +31,7 @@ def main():
     latest_model_uri = get_latest_model()
 
     if latest_model_uri is not None:
-        retrain_model(args.input_path, latest_model_uri)
+        retrain_model(args.input_path)
     else:
         train_initial_model(args.input_path)
 

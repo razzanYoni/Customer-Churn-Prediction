@@ -8,7 +8,7 @@ from pyspark.sql import DataFrame
 parser = argparse.ArgumentParser(description="Data Preprocessing and Drift Simulation")
 parser.add_argument("--input_path", type=str, required=True, help="Path to the input dataset")
 parser.add_argument("--output_path", type=str, required=True, help="Path to save the drifted dataset")
-parser.add_argument("--drift_intensity", type=float, default=0.2, help="Drift intensity (default: 0.2)")
+parser.add_argument("--drift_intensity", type=float, default=0, help="Drift intensity (default: 0)")
 args = parser.parse_args()
 
 path = args.input_path
@@ -20,19 +20,15 @@ spark : SparkSession = SparkSession.builder.appName("SimpleApp").getOrCreate()
 df : DataFrame = spark.read.csv(path, header=True, inferSchema=True)
 
 # Function to Simulate Data Drift
-def simulate_data_drift(df: DataFrame, drift_intensity=0.2):
+def simulate_data_drift(df: DataFrame, drift_intensity):
     # Drift for Numerical Columns
     df = df.withColumn(
         "MonthlyCharges",
-        col("MonthlyCharges") * (1 + lit(drift_intensity) * rand())
+        col("MonthlyCharges") * (1 + drift_intensity * rand())
     ).withColumn(
         "TotalCharges",
-        col("TotalCharges") * (1 + lit(drift_intensity) * rand())
-    ).withColumn(
-        "tenure",
-        (col("tenure") + (lit(drift_intensity * 10) * rand()).cast("int"))
+        col("TotalCharges") * (1 + drift_intensity * rand())
     )
-
     # Drift for Categorical Columns
     df = df.withColumn(
         "gender",

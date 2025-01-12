@@ -37,7 +37,7 @@ services:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
     environment:
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
       - AIRFLOW__WEBSERVER__SECRET_KEY=your-secret-key-here

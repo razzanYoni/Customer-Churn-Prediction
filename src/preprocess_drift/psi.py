@@ -200,6 +200,9 @@ try:
         .format("json") \
         .option("header", True) \
         .load(distribution_path)
+    
+    print("Getting old distribution successful")
+    old_distribution.show(5)
 except:
     new_distribution.write \
         .mode("overwrite") \
@@ -212,7 +215,7 @@ except:
     spark.stop()
     exit(0)
 
-
+print("Old Distribution")
 psi = get_psi(new_distribution, old_distribution)
 
 print(psi)
