@@ -13,7 +13,7 @@ def train_model_neural_network(data_train, data_test, isRetrain=False):
         mlp = MultilayerPerceptronClassifier(
             layers = [data_train.schema["features"].metadata["ml_attr"]["num_attrs"], 10, 45, 20, 2],
             seed = 123,
-            maxIter = 10,
+            maxIter = 400,
             labelCol = "label",
             featuresCol="features",
         )

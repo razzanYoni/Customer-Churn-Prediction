@@ -4,6 +4,8 @@ from pyspark.ml.feature import Bucketizer
 from pyspark.sql.types import StructType, StructField, DoubleType, ArrayType
 from pyspark.sql.functions import col
 import numpy as np
+import pathlib
+import os
 
 def is_retrain(psi_values) -> bool:
     return any(psi > 0.1 for psi in psi_values.values())
@@ -103,6 +105,7 @@ distribution_path = args.distribution_path
 file_type = args.file_type
 
 def write_is_retrain(is_retrain: bool):
+    pathlib.Path(os.path.dirname(is_retrain_flag_file)).mkdir(parents=True, exist_ok=True)
     with open(is_retrain_flag_file, "w") as f:
         f.write(str(is_retrain))
 
