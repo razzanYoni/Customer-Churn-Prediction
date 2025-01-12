@@ -8,7 +8,7 @@ from pyspark.sql import SparkSession
 # https://github.com/mwburke/population-stability-index
 
 def train_model_neural_network(data_train, data_test, isRetrain=False):
-    with mlflow.start_run(run_name="Initial_Model_Training" if not not isRetrain else "Retrain_Model"):
+    with mlflow.start_run(run_name="Initial_Model_Training" if not isRetrain else "Retrain_Model"):
         # get weights from the latest model
         mlp = MultilayerPerceptronClassifier(
             layers = [data_train.schema["features"].metadata["ml_attr"]["num_attrs"], 10, 45, 20, 2],

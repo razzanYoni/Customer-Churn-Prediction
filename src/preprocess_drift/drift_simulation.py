@@ -24,10 +24,7 @@ def simulate_data_drift(df: DataFrame, drift_intensity):
     # Drift for Numerical Columns
     df = df.withColumn(
         "MonthlyCharges",
-        col("MonthlyCharges") * (1 + drift_intensity * rand())
-    ).withColumn(
-        "TotalCharges",
-        col("TotalCharges") * (1 + drift_intensity * rand())
+        col("MonthlyCharges") * (1 + drift_intensity)
     )
     # Drift for Categorical Columns
     df = df.withColumn(
