@@ -8,12 +8,13 @@
 ## Setup
 
 1. Clone the repository
-2. Run `docker compose up -d` to start the services
-3. Airflow will be available at [http://localhost:8090](http://localhost:8090). Use username `admin` and password `admin` to login.
-4. The DAGs are located in the `dags` directory.
-5. The source code is located in the `src` directory.
-6. MLFlow web UI will be available at [http://localhost:5001](http://localhost:5001).
-7. You can run the DAG by triggering it from the Airflow web UI at [http://localhost:8090](http://localhost:8090).
+2. move to infra directory `cd ./infra`
+3. Run `docker compose up -d` to start the services
+4. Airflow will be available at [http://localhost:8090](http://localhost:8090). Use username `admin` and password `admin` to login.
+5. The DAGs are located in the `dags` directory.
+6. The source code is located in the `src` directory.
+7. MLFlow web UI will be available at [http://localhost:5001](http://localhost:5001).
+8. You can run the DAG by triggering it from the Airflow web UI at [http://localhost:8090](http://localhost:8090).
 
 ## DAG
 
