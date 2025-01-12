@@ -32,7 +32,7 @@ with DAG(
         application='/opt/airflow/src/preprocess_drift/drift_simulation.py',
         packages='org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0',
         conn_id='spark_default',
-        application_args=['--input_path', f"hdfs://{HDFS_HOST}:{HDFS_PORT}/data/raw", '--output_path', f"hdfs://{HDFS_HOST}:{HDFS_PORT}/data/drifted", '--drift_intensity', '100']
+        application_args=['--input_path', f"hdfs://{HDFS_HOST}:{HDFS_PORT}/data/raw", '--output_path', f"hdfs://{HDFS_HOST}:{HDFS_PORT}/data/drifted", '--drift_intensity', '10']
     )
 
     cleaning_data = SparkSubmitOperator(
